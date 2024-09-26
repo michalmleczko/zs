@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zahlenstrahl Practice</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #number-line { margin: 25px auto; width: 60%; position: relative; }
+        .point { position: absolute; }
+        #scoreboard { margin-top: 20px; }
+        #timer { font-size: 18px; }
+        #input-section { margin-top: 80px; }
+        #difficulty-selection { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>Zahlenstrahl Practice</h1>
+
+<div id="difficulty-selection">
+    <label for="difficulty">Select Difficulty:</label>
+    <select id="difficulty" onchange="generateProblem()">
+        <option value="easy" selected>Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+</div>
+
+<div id="number-line">
+    <div id="line" style="width:100%; height:2px; background:black; position:absolute; top:50%;"></div>
+    <div id="start-point" class="point"></div>
+    <div id="end-point" class="point"></div>
+    <div id="middle-point" class="point" style="left:50%;"></div>
+</div>
+
+<div id="input-section">
+    <p>Enter the middle number:</p>
+    <input type="number" id="middle-input">
+    <button onclick="checkAnswer()">Submit</button>
+</div>
+
+<div id="feedback"></div>
+
+<div id="scoreboard">
+    <p id="timer">Time: 0s</p>
+    <p>Correct on First Try: <span id="correct-first">0</span></p>
+    <p>Correct After Revision: <span id="correct-revision">0</span></p>
+    <p>Incorrect: <span id="incorrect">0</span></p>
+</div>
+
+<script>
+    let startNumber, endNumber, correctMiddle;
+    let correctFirstTry = 0;
+    let correctAfterRevision = 0;
+    let incorrectAnswers = 0;
+    let firstAttempt = true;
+    let timeElapsed = 0;
+    let timer;
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeElapsed++;
+            document.getElementById('timer').innerText = 'Time: ' + timeElapsed + 's';
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+    }
+
+    function getRandomIntInclusive(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateProblem() {
+        firstAttempt = true;
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('middle-input').value = '';
+
+        let difficulty = document.getElementById('difficulty').value;
+        console.log(difficulty);
+	let minNumber, maxNumber, difference;
+	let exponentPower, exponentBase;
+
+        if (difficulty === 'easy') {
+            // Base numbers between 1 and 10
+            minNumber = 25;
+            maxNumber = 100;
+	    exponentPower = getRandomIntInclusive(3, 4);
+            // Differences divisible by 25
+            let possibleDifferences = [25, 50, 75, 100];
+            difference = possibleDifferences[getRandomIntInclusive(0, possibleDifferences.length - 1)];
+        } else if (difficulty === 'medium') {
+            // Base numbers between 10 and 100
+            minNumber = 1;
+            maxNumber = 1000;
+	    exponentPower = getRandomIntInclusive(2, 4);
+            // Differences divisible by 10
+            let possibleDifferences = [];
+            for (let i = 20; i <= 200; i += 10) {
+                possibleDifferences.push(i);
+            }
+            difference = possibleDifferences[getRandomIntInclusive(0, possibleDifferences.length - 1)];
+        } else if (difficulty === 'hard') {
+            // Base numbers between 100 and 1000
+            minNumber = 1;
+            maxNumber = 10000;
+	    exponentPower = getRandomIntInclusive(0, 3);
+            // Difference is even integer
+            let maxDifference = maxNumber - minNumber;
+            difference = getRandomIntInclusive(2, maxDifference);
+            if (difference % 2 !== 0) {
+                difference += 1; // Ensure difference is even
+            }
+        }
+	exponentBase = Math.pow(10, exponentPower);
+
+	console.log(minNumber);
+	console.log(maxNumber);
+	console.log(exponentBase);
+
+        // Multiply base numbers by exponentBase
+        // minNumber *= exponentBase;
+        // maxNumber *= exponentBase;
+        // difference *= exponentBase;
+
+        // Ensure the middle number is such that startNumber is positive
+        let minMiddle = minNumber + difference / 2;
+        let maxMiddle = maxNumber - difference / 2;
+
+        if (minMiddle > maxMiddle) {
+            minMiddle = maxMiddle = minNumber + (maxNumber - minNumber) / 2;
+        }
+
+        correctMiddle = getRandomIntInclusive(minMiddle, maxMiddle);
+        startNumber = correctMiddle - difference / 2;
+        endNumber = correctMiddle + difference / 2;
+
+	console.log(correctMiddle);
+
+        // Ensure numbers are integers
+        startNumber = Math.round(startNumber * exponentBase);
+        endNumber = Math.round(endNumber * exponentBase);
+        correctMiddle = Math.round(correctMiddle * exponentBase);
+
+	console.log(startNumber);
+	console.log(endNumber);
+	console.log(correctMiddle);
+
+        // Update the display
+        document.getElementById('start-point').innerText = startNumber;
+        document.getElementById('end-point').innerText = endNumber;
+
+        document.getElementById('start-point').style.left = '10%';
+        document.getElementById('start-point').style.padding = '10px';
+        document.getElementById('end-point').style.left = '90%';
+        document.getElementById('end-point').style.padding = '10px';
+        document.getElementById('middle-point').innerText = '?';
+        document.getElementById('middle-point').style.padding = '10px';
+    }
+
+    function checkAnswer() {
+        let userAnswer = parseInt(document.getElementById('middle-input').value);
+        if (userAnswer === correctMiddle) {
+            document.getElementById('feedback').innerText = 'Correct!';
+            document.getElementById('middle-point').innerText = correctMiddle;
+            if (firstAttempt) {
+                correctFirstTry++;
+                document.getElementById('correct-first').innerText = correctFirstTry;
+            } else {
+                correctAfterRevision++;
+                document.getElementById('correct-revision').innerText = correctAfterRevision;
+            }
+            // Automatically move to next problem after 1 second
+            setTimeout(generateProblem, 1000);
+        } else {
+            document.getElementById('feedback').innerText = 'Incorrect, try again.';
+            firstAttempt = false;
+            incorrectAnswers++;
+            document.getElementById('incorrect').innerText = incorrectAnswers;
+        }
+    }
+
+    window.onload = function() {
+        generateProblem();
+        startTimer();
+    };
+</script>
+
+</body>
+</html>
+
